@@ -38,7 +38,7 @@ async function run() {
 
         app.post('/create-payment-intent', async (req, res) => {
             const order = await req.body;
-            const amount = await order.totalCost || 500;
+            const amount = await order.totalCost;
             // console.log(amount)
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: parseInt(amount),
@@ -97,15 +97,28 @@ async function run() {
             res.send(users);
         });
 
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email: email });
+            const isAdmin = user.role === 'admin';
+            res.send({ admin: isAdmin })
+        });
 
         app.put('/user/admin/:email', async (req, res) => {
             const email = req.params.email;
-            const filter = { email: email };
-            const updateDoc = {
-                $set: { role: 'admin' },
-            };
-            const result = await userCollection.updateOne(filter, updateDoc);
-            res.send(result);
+            const requesterAccount = await userCollection.findOne({ email: email });
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'admin' },
+                };
+                const result = await userCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            }
+            else {
+                res.status(403).send({ message: 'forbidden' })
+            }
+
         });
 
 
