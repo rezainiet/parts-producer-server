@@ -28,6 +28,12 @@ async function run() {
             res.send(result);
         });
 
+        app.post('/product', async (req, res) => {
+            const product = req.body;
+            const result = await productCollection.insertOne(product);
+            res.send(result);
+        });
+
         app.get('/product/:id', async (req, res) => {
             const productId = req.params.id;
             const query = { _id: ObjectId(productId) };
@@ -84,6 +90,11 @@ async function run() {
             res.send(order.reverse());
         });
 
+        app.get('/order', async (req, res) => {
+            const orders = await orderCollection.find().toArray();
+            res.send(orders.reverse());
+        })
+
         app.get('/payment/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: ObjectId(id) }
@@ -100,7 +111,7 @@ async function run() {
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const user = await userCollection.findOne({ email: email });
-            const isAdmin = user.role === 'admin';
+            const isAdmin = user?.role === 'admin';
             res.send({ admin: isAdmin })
         });
 
